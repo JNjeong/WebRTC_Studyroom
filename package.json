@@ -1,7 +1,7 @@
 {
-  "name": "7_nodejs",
+  "name": "studyroom",
   "version": "1.0.0",
-  "description": "전반적인 구조설명",
+  "description": "상호 webcam 연결 스터디룸 프로젝트",
   "homepage": "https://github.com/JNjeong/WebRTC_Studyroom#readme",
   "bugs": {
     "url": "https://github.com/JNjeong/WebRTC_Studyroom/issues"
@@ -23,7 +23,8 @@
     "ejs": "^6.0.1",
     "express": "^5.2.1",
     "jsonwebtoken": "^9.0.3",
-    "mongodb": "^7.4.0"
+    "mongodb": "^7.4.0",
+    "profanity-filter": "^0.2.1"
   },
   "devDependencies": {
     "nodemon": "^3.1.14"

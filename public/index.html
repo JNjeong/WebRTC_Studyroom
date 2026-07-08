@@ -3,10 +3,45 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>TODO</title>
+    <title>temp</title>
     <link rel="stylesheet" href="./style.css" />
   </head>
   <body>
+    <main class="app">
+      <section class="hero">
+        <p class="badge">핏치 (Fit-Chee)</p>
+        <h1 class="title">Blind Date</h1>
+        <p class="subtitle">10분 랜덤 화상 소개팅</p>
+      </section>
 
+      <section id="loginBox" class="card login-card">
+        <h2>입장하기</h2>
+        <input
+          id="nicknameInput"
+          type="text"
+          placeholder="닉네임을 입력하세요 (미입력시 익명)"
+          maxlength="12"
+        />
+        <div class="gender-group">
+          <input type="radio" id="male" name="gender" value="남" hidden />
+          <label for="male" class="gender-btn">남성</label>
+
+          <input type="radio" id="female" name="gender" value="여" hidden />
+          <label for="female" class="gender-btn">여성</label>
+        </div>
+        <input
+          id="ageInput"
+          type="number"
+          placeholder="나이를 입력하세요"
+          min="20"
+          max="39"
+        />
+        <button id="joinBtn">입장</button>
+        <p class="hint">♡운명의 상대를 만나보세요♡</p>
+      </section>
+
+      <script src="/socket.io/socket.io.js"></script>
+      <script src="app.js"></script>
+    </main>
   </body>
 </html>
