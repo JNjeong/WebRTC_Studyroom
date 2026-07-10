@@ -44,5 +44,51 @@ async function startLocalMedia(){
 // webRTC 설정
 
 
+// WebRTC 연결 객체를 생성하고 통신에 필요한 이벤트를 등록하는 함수
+
+function createPeerConnection(){
+
+    // 1) peerConnection 만들기 
+    peerConnection = new RTCPeerConnection(rtcConfig)
+
+    // 2) 사용자의 track 등록하기 
+    localStream.getTracks().forEach((track)=>{
+        peerConnection.addTrack(track, localStream)
+    })
+
+    // 3) 상대의 영상/음성 track 오면 실행
+    peerConnection.ontrack = (e)=>{
+        const remoteStream = e.streams[0]
+        //  추후  상대방의 화상채팅 화면에 해당 media 보여주기 
+
+    }
+
+    // 4) 새로운 ICE Candidate가 생성되면 상대방에게 전달
+    peerConnection.onicecandidate=(e)=>{
+       // todo : socket.io를 통해 candidate 전송 
+        
+    }
+    
+    // +) webRTC 연결 상태가 변경될 때마다 실행 
+    peerConnection.onconnectionstatechange= () =>{
+        const currentState = peerConnection.connectionState
+        console.log('현재 연결 상태',currentState)
+
+        //                     
+    }
+}
+
+// webRTC 연결 종료 및 초기화하는 함수 
+function resetPeerConnection() {
+    if (peerConnection) {
+      peerConnection.ontrack = null;
+      peerConnection.onicecandidate = null;
+      peerConnection.onconnectionstatechange = null;
+      peerConnection.close();
+      peerConnection = null;
+    }
+  }
+
+
 // ---------------------------------------------------------
 // socket 설정
