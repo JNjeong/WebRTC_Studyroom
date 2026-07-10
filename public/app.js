@@ -122,6 +122,17 @@ async function handleOffer(offer){
     socket.emit('answer',{roomId,answer}) // 서버를 통해 사용자의 answer을 상대방에게 보내기 
 }
 
+ // 상대방이 보낸 연결정보(answer)를 
+ // 사용자 peerConnection의 reomte Description으로 저장 
+async function handleAnswer(answer) {
+    if(!peerConnection){
+        console.log('peerConnection 생성 안됨..')
+        return
+    }
+    await peerConnection.setRemoteDescription(new RTCSessionDescription(answer)); 
+   
+  }
+
 // webRTC 연결 종료 및 초기화하는 함수 
 function resetPeerConnection() {
     if (peerConnection) {
@@ -145,6 +156,10 @@ function resetPeerConnection() {
 
 socket.on('offer',async({offer})=>{ // 상대방으로부터 offer을 받았을 때 handleOffer() 함수 실행
     await handleOffer(offer)
+})
+
+socket.on('answer',async({answer})=>{ // 상대방으로부터 answer을 받았을 때 handleAnswer() 함수 실행 
+    await handleAnswer(answer)
 })
 
 
