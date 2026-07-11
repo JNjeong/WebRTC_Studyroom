@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Blind Date</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+  <!-- 전체 화면 영역임 -->
+  <main class="app">
+    <!-- 로고와 제목 있음 -->
+    <section class="hero">
+      <p class="badge"><img id="logoImg" src="./images/image.png" alt="로고"></p>
+      <h1 class="title">Blind Date</h1>
+      <p class="subtitle">10분 로테이션 화상 소개팅</p>
+    </section>
+
+    <!-- 입장 정보 입력하는 곳임 -->
+    <section id="loginBox" class="card login-card">
+      <h2>입장하기</h2>
+      <input id="nicknameInput" type="text" placeholder="닉네임을 입력하세요 (미입력시 익명)" maxlength="12" />
+      <!-- 성별 선택 있음 -->
+      <div class="gender-group">
+        <input type="radio" id="male" name="gender" value="남" hidden>
+        <label for="male" class="gender-btn">남성</label>
+
+        <input type="radio" id="female" name="gender" value="여" hidden>
+        <label for="female" class="gender-btn">여성</label>
+      </div>
+      <input id="ageInput" type="number" placeholder="나이를 입력하세요" min="20" max="39" />
+      <button id="joinBtn">입장</button>
+      <p class="hint">♡운명의 상대를 만나보세요♡</p>
+    </section>
+  </main>
+
+  <!-- 서버 연결과 화면 동작 담당함 -->
+  <script src="/socket.io/socket.io.js"></script>
+  <script type="module" src="app.js"></script>
+</body>
+
+</html>

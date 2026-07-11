@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blind Date</title>
+    <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+    <!-- 영상 매칭 화면 전체 영역임 -->
+    <main class="app">
+        <!-- 로고와 제목 있음 -->
+        <section class="hero">
+            <p class="badge"><img id="logoImg" src="./images/image.png" alt="로고"></p>
+            <h1 class="title">Blind Date</h1>
+            <p class="subtitle">10분 로테이션 화상 소개팅</p>
+        </section>
+        <!-- 매칭 상태와 조작 버튼 있음 -->
+        <section id="mainBox" class="main-box">
+            <div class="top-bar card">
+                <div>
+                    <strong id="myName">나</strong>
+                    <p id="statusText">대기 중</p>
+                </div>
+                <div>
+                    <strong id="time">남은 시간</strong>
+                    <p id="timeShow">10:00</p>
+                </div>
+                <!-- 매칭, 다음 사람, 종료 버튼 있음 -->
+                <div class="actions">
+                    <button id="findBtn">랜덤 매칭 시작</button>
+                    <button id="nextBtn" class="secondary" disabled>다음 사람</button>
+                    <button id="hangupBtn" class="danger" disabled>연결 종료</button>
+                    <button id="logoutBtn" class="danger">나가기</button>
+                </div>
+            </div>
+
+            <!-- 영상과 채팅 영역임 -->
+            <section class="content-grid">
+                <!-- 내 영상과 상대 영상 보여주는 곳임 -->
+                <div class="video-area card">
+                    <div class="video-card">
+                        <video id="localVideo" autoplay playsinline muted></video>
+                        <span>나</span>
+                    </div>
+                    <div class="video-card remote">
+                        <video id="remoteVideo" autoplay playsinline></video>
+                        <span id="partnerLabel">상대</span>
+                    </div>
+                    <div class="media-controls">
+                        <button id="micBtn" class="secondary">마이크 ON</button>
+                        <button id="cameraBtn" class="secondary">카메라 ON</button>
+                    </div>
+                </div>
+
+                <!-- 실시간 채팅 있음 -->
+                <aside class="chat card">
+                    <h3>실시간 채팅</h3>
+                    <div id="chatMessages" class="chat-messages"></div>
+                    <form id="chatForm" class="chat-form">
+                        <input id="chatInput" type="text" placeholder="메시지 입력" disabled />
+                        <button id="sendBtn" type="submit" disabled>전송</button>
+                    </form>
+                </aside>
+            </section>
+        </section>
+    </main>
+
+    <!-- 서버 연결과 화면 동작 담당함 -->
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="app.js"></script>
+</body>
+
+</html>
