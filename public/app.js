@@ -49,7 +49,13 @@ elementCol["joinBtn"].addEventListener("click", async () => {
         // TODO : 마이크 , 카메라 텍스트 변경
         // TODO : 마이크, 카메라 색변경
         
-        socket.emit("join", {nickname});
+        // nickname, gender, age를 서버로 전송하여 입장 처리
+        socket.emit("join", {
+            nickname,
+            gender,
+            age
+        });
+
         loginBox.classList.add("hidden")
         // 메인박스 숨기기
         addSystemMessage("입장 완료. 랜덤 매칭을 시작하세요.")
@@ -77,8 +83,198 @@ async function startLocalMedia(){
     // 추후 화상채팅 시작하면 사용자의 화면 출력하게 하기 
 }
 
+//---------------------------------------------------------
+// 채팅창 관련 함수
 
-// TODO : addSystemMessage() 함수    
+
+
+// 채팅창을 가장 아래로 이동
+function scrollChatToBottom() {
+    const chatMessages = elementCol["chatMessages"]
+
+    if (!chatMessages) return
+
+    chatMessages.scrollTop = chatMessages.scrollHeight
+}
+
+// addSystemMessage() 함수 시스템 메시지 출력
+// message: 출력할 시스템 메시지
+// chatMessages 요소에 시스템 메시지 추가 후 스크롤 이동
+// 시스템 메시지 스타일링은 CSS에서 .system-message 클래스 정의 필요
+function addSystemMessage(message) {
+    const chatMessages = elementCol["chatMessages"]
+
+    if (!chatMessages) {
+        console.error("chatMessages 요소를 찾을 수 없습니다.")
+        return
+    }
+
+    const systemMessage = document.createElement("div")
+    systemMessage.classList.add("system-message")
+    systemMessage.textContent = message
+
+    chatMessages.appendChild(systemMessage)
+    scrollChatToBottom()
+}
+
+// 일반 채팅 메시지 출력
+// message: 출력할 채팅 메시지
+// type: "me" 또는 "partner"로 메시지 유형 지정
+// senderNickname: 상대방 닉네임
+function addChatMessage(message, type, senderNickname) {
+    const chatMessages = elementCol["chatMessages"]
+
+    // chatMessages 요소가 존재하지 않으면 함수 종료
+    if (!chatMessages) {
+        console.error("chatMessages 요소를 찾을 수 없습니다.")
+        return
+    }
+
+    // 메시지 박스 생성
+    const messageBox = document.createElement("div")
+    const nicknameElement = document.createElement("span")
+    const messageElement = document.createElement("p")
+
+    messageBox.classList.add("chat-message")
+
+    // 메시지 유형에 따라 클래스 추가
+    // "me"이면 내 메시지, "partner"이면 상대방 메시지
+    if (type === "me") {
+        messageBox.classList.add("my-message")
+    } else {
+        messageBox.classList.add("partner-message")
+    }
+
+    nicknameElement.classList.add("message-nickname")
+    messageElement.classList.add("message-text")
+
+    nicknameElement.textContent =
+        type === "me"
+            ? nickname || "나"
+            : senderNickname || "상대방"
+
+    // XSS 방지를 위해 innerHTML 대신 textContent 사용
+    // textContent는 HTML 태그를 해석하지 않고 일반 텍스트로 처리
+    // 방지 필요 이유 : 사용자가 입력한 메시지에 스크립트가 포함될 수 있음
+    messageElement.textContent = message
+
+    messageBox.append(nicknameElement, messageElement)
+    chatMessages.appendChild(messageBox)
+
+    scrollChatToBottom()
+}
+
+// 채팅 메시지 전송
+function sendChatMessage() {
+    const chatInput = elementCol["chatInput"]
+
+    if (!chatInput) {
+        console.error("chatInput 요소를 찾을 수 없습니다.")
+        return
+    }
+
+    if (!roomId) {
+        addSystemMessage("상대방과 매칭된 후 채팅할 수 있습니다.")
+        return
+    }
+
+    const inputMessage = chatInput.value.trim()
+
+    // 빈 메시지 방지
+    if (!inputMessage) {
+        chatInput.value = ""
+        return
+    }
+
+    // 메시지 길이 제한
+    if (inputMessage.length > 300) {
+        alert("메시지는 최대 300자까지 입력할 수 있습니다.")
+        return
+    }
+
+    // 클라이언트에서 영문 욕설 1차 필터링
+    const filteredMessage = filterEng(inputMessage)
+
+    // 서버는 users Map에서 닉네임을 확인하므로 nickname은 보내지 않음
+    socket.emit("chat-message", {
+        roomId,
+        message: filteredMessage
+    })
+
+    // 내 화면에는 즉시 출력
+    addChatMessage(
+        filteredMessage,
+        "me",
+        nickname
+    )
+
+    chatInput.value = ""
+    chatInput.focus()
+}
+
+// 새 매칭 시 이전 대화 초기화
+function clearChatMessages() {
+    const chatMessages = elementCol["chatMessages"]
+
+    if (!chatMessages) return
+
+    chatMessages.replaceChildren()
+}
+
+// 채팅 입력창 활성화 / 비활성화
+function setChatEnabled(enabled) {
+    const chatInput = elementCol["chatInput"]
+    const sendBtn = elementCol["sendBtn"]
+    const emojiButtons = elementCol["emojiButtons"]
+
+    if (chatInput) {
+        chatInput.disabled = !enabled;
+        chatInput.placeholder = enabled
+            ? "메시지를 입력하세요."
+            : "상대방과 매칭 후 채팅할 수 있습니다."
+    }
+
+    if (sendBtn) {
+        sendBtn.disabled = !enabled
+    }
+
+    if (emojiButtons) {
+        emojiButtons.forEach((button) => {
+            button.disabled = !enabled
+        })
+    }
+}
+
+// 이모지 버튼 등록
+// 이모지 버튼 클릭 시 채팅 입력창에 해당 이모지 추가
+function setupEmojiButtons() {
+    const emojiButtons = elementCol["emojiButtons"]
+    const chatInput = elementCol["chatInput"]
+
+    if (!emojiButtons || !chatInput) return
+
+    emojiButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+            if (chatInput.disabled) return
+
+            chatInput.value += button.textContent
+            chatInput.focus()
+        })
+    })
+}
+
+// 채팅 form submit 이벤트
+// form submit 시 페이지 새로고침 방지 및 sendChatMessage 호출
+elementCol["chatForm"]?.addEventListener("submit", (event) => {
+    event.preventDefault()
+    sendChatMessage()
+});
+
+// 초기 상태에서는 채팅 비활성화
+setChatEnabled(false)
+
+// 이모지 버튼 이벤트 등록
+setupEmojiButtons()
 
 
 //---------------------------------------------------------
@@ -200,6 +396,25 @@ function resetPeerConnection() {
 // ---------------------------------------------------------
 // socket 설정
 
+//입장
+// 서버에서 입장 완료 응답
+socket.on("joined", ({ socketId }) => {
+    console.log("입장 완료. 내 소켓 ID:", socketId)
+})
+
+// 매칭 대기
+// 대기 상태
+socket.on("waiting", () => {
+    addSystemMessage("상대방을 기다리는 중입니다.")
+    setChatEnabled(false)
+})
+
+// 대기 취소
+socket.on("waiting-canceled", () => {
+    addSystemMessage("매칭 대기를 취소했습니다.")
+    setChatEnabled(false)
+})
+
 
 
 
@@ -208,9 +423,14 @@ function resetPeerConnection() {
 
 
 // 서버로부터 matched 이벤트를 받고 webRTC 연결을 준비 
+// matched 이벤트는 서버에서 상대방과 매칭이 완료되었을 때 발생
 socket.on('matched',async({roomId : matchedRoomId , isCaller, partnerNickname})=>{
 
     roomId = matchedRoomId
+
+    clearChatMessages() // 이전 대화 초기화
+    addSystemMessage(`${partnerNickname}님과 매칭되었습니다.`)
+    setChatEnabled(true) // 채팅 활성화
 
     console.log('방 번호 :',roomId)
     console.log('내가 Caller인지: ',isCaller)
@@ -231,6 +451,7 @@ socket.on('matched',async({roomId : matchedRoomId , isCaller, partnerNickname})=
 
 })
 
+// webRTC 시그널링 
 socket.on('offer',async({offer})=>{ // 상대방으로부터 offer을 받았을 때 handleOffer() 함수 실행
     await handleOffer(offer)
 })
@@ -243,3 +464,61 @@ socket.on('ice-candidate',async({candidate})=>{
     await handleIceCandidate(candidate)
 })
 //----------------------------------------------------
+
+// 실시간 채팅 관련
+
+// 상대방 메세진 수신
+socket.on("chat-message", ({ message, senderNickname }) => {
+    if(!message) return
+
+    addChatMessage(
+        message,
+        "partner",
+        senderNickname
+    )
+})
+
+// 서버 채팅 검증 실패
+socket.on("chat-error", ({ message }) => {
+    addSystemMessage( message || "메시지 전송에 실패했습니다.")
+})
+
+//퇴장
+// 상대방이 나간 경우
+socket.on("partner-left", () => {
+    addSystemMessage("상대방이 나갔습니다.")
+    setChatEnabled(false)
+    resetPeerConnection() // webRTC 연결 종료 및 초기화
+    roomId = null // 방번호 초기화
+})
+
+// 상대방이 연결을 끊은 경우
+socket.on("partner-disconnected", () => {
+    addSystemMessage("상대방이 연결을 끊었습니다.")
+    setChatEnabled(false)
+    resetPeerConnection() // webRTC 연결 종료 및 초기화
+    roomId = null // 방번호 초기화
+})
+
+// 10분 대화 시간 종료
+socket.on("time-out", () => {
+    addSystemMessage("기본 10분 대화 시간이 종료되었습니다.")
+    setChatEnabled(false)
+    resetPeerConnection() // webRTC 연결 종료 및 초기화
+    roomId = null // 방번호 초기화
+})
+
+// 서버 연결 관련
+// 서버 연결 완료
+socket.on("connect", () => {
+    console.log("서버 연결 완료. 내 소켓 ID:", socket.id)
+})
+
+// 서버 연결 끊김
+socket.on("disconnect", () => {
+    console.log("서버 연결 끊김")
+    addSystemMessage("서버 연결이 끊겼습니다.")
+    setChatEnabled(false)
+    resetPeerConnection() // webRTC 연결 종료 및 초기화
+    roomId = null // 방번호 초기화
+})  

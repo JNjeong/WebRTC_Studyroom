@@ -19,6 +19,10 @@ export default element = {
     "chatMessages" : document.getElementById("chatMessages"),
     "chatForm" : document.getElementById("chatForm"),
     "chatInput" : document.getElementById("chatInput"),
-    "sendBtn" : document.getElementById("sendBtn")
+    "sendBtn" : document.getElementById("sendBtn"),
+    
+    "emojiButtons" : document.querySelectorAll(".emojiBtn")
 
     }
+
+    export default element
