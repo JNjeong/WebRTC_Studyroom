@@ -14,6 +14,10 @@ let peerConnection =null // webRTC 연결 객체
 
 let roomId= null // 방번호
 
+let nickname = "";  // 사용자명
+let isMicOn =true;  // 마이크 상태 flag
+let isCameraOn=true; // 카메라 상태 flag
+
 function filterEng(text){
     /*
     filter.clean(text): ***로 치환
@@ -26,6 +30,35 @@ function filterEng(text){
     */
 }
 
+elementCol["joinBtn"].addEventListener("click", async () => {
+    nickname = elementCol["nicknameInput"].value.trim() || "익명";
+    const gender = document.querySelector('input[name="gender"]:checked')?.value;
+    const age = ageInput.value;
+    if (!gender) {
+        alert("성별을 선택해주세요.");
+        return;
+    }
+    if (!age) {
+        alert("나이를 입력해주세요.");
+        return;
+    }
+
+    try{
+
+        
+        // TODO : 마이크 , 카메라 텍스트 변경
+        // TODO : 마이크, 카메라 색변경
+        
+        socket.emit("join", {nickname});
+        loginBox.classList.add("hidden")
+        // 메인박스 숨기기
+        addSystemMessage("입장 완료. 랜덤 매칭을 시작하세요.")
+        
+    } catch (error) {
+        alert("카메라 또는 마이크 권한을 허용해야 이용할 수 있습니다.")
+        console.log("###LOG: ", error)
+    }
+})
 
 
 
@@ -43,6 +76,9 @@ async function startLocalMedia(){
     }) 
     // 추후 화상채팅 시작하면 사용자의 화면 출력하게 하기 
 }
+
+
+// TODO : addSystemMessage() 함수    
 
 
 //---------------------------------------------------------
