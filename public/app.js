@@ -170,6 +170,31 @@ function resetPeerConnection() {
 //----------------------------------------------------
 /* WebRTC 관련  */
 
+
+// 서버로부터 matched 이벤트를 받고 webRTC 연결을 준비 
+socket.on('matched',async({roomId : matchedRoomId , isCaller, partnerNickname})=>{
+
+    roomId = matchedRoomId
+
+    console.log('방 번호 :',roomId)
+    console.log('내가 Caller인지: ',isCaller)
+    console.log('상대방 이름:',partnerNickname)
+    
+
+    if(!localStream){// 카메라와 마이크 실행하기
+        await startLocalMedia()
+    }
+
+    if(!peerConnection){ // WebRTC 연결 객체 생성 
+        createPeerConnection()
+    }
+    if (isCaller) {
+        // 내가 먼저 거는 사람이면 offer을 생성하고 전송하기 
+        await makeOffer()
+    }
+
+})
+
 socket.on('offer',async({offer})=>{ // 상대방으로부터 offer을 받았을 때 handleOffer() 함수 실행
     await handleOffer(offer)
 })

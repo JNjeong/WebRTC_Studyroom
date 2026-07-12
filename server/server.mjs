@@ -2,7 +2,7 @@ import express from "express"
 import http from "http"
 import {Server} from "socket.io"
 import path from "path"
-import {ProfanityFilter} from "korean-profanity-filter"
+import ProfanityFilter from "korean-profanity-filter"
 import { fileURLToPath } from "url"
 
 const app = express()
@@ -39,7 +39,7 @@ function handleRoomTimeOut(roomId) {        // 10분 타이머가 끝나면 매�
                 socket.emit("time-out")
 
                 const user = users.get(socketId)
-                if (user) {s
+                if (user) {
                     user.roomId = null
                     user.isCaller = false
                     users.set(socketId, user)
