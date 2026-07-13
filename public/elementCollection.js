@@ -13,7 +13,14 @@ const element = {
     "sendBtn" : document.getElementById("sendBtn"),
 
     // 이모지 버튼 목록
-    "emojiButtons" : document.querySelectorAll(".emojiBtn")
+    "emojiButtons" : document.querySelectorAll(".emojiBtn"),
+
+    // 화상 화면 
+    "localVideo": document.getElementById("localVideo"),
+    "remoteVideo": document.getElementById("remoteVideo"),
+
+    // 화상 채팅 중 현재 상태 
+    'statusText' : document.getElementById('statusText')
 
 
 

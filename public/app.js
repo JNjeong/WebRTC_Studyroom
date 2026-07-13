@@ -3,16 +3,19 @@ import Filter from 'bad-words' //영문 욕설 필터링
 import {rtcConfig} from "../config/stun.js" ; // webRTC STUN 설정 
 
 //---------------------------------------------------------
-// 전역변ㅅ 설정
+// 전역변수 설정
 const elementCol = elements
 const filter = new Filter()
 
 const socket = io();
 
+const statusText = elementCol['statusText']
+
 let localStream = null // 카메라/마이크 실행 -> MediaStream 객체 생성 
 let peerConnection =null // webRTC 연결 객체 
 
 let roomId= null // 방번호
+let isCaller=false
 
 let nickname = "";  // 사용자명
 let isMicOn =true;  // 마이크 상태 flag
@@ -80,7 +83,20 @@ async function startLocalMedia(){
         video : true,
         audio : true 
     }) 
-    // 추후 화상채팅 시작하면 사용자의 화면 출력하게 하기 
+
+    // 사용자의 카메라 스트림을 join.html의 localVideo에 출력하기 
+    const localVideo = elementCol['localVideo']
+    if(!localVideo){
+        console.log('localVideo 찾을 수 x')
+        return
+    }
+    localVideo.srcObject = localStream
+
+}
+
+/* 현재 연결 상태 표시 수정하기 */
+function setStatus(text){
+    statusText.textContent = text
 }
 
 //---------------------------------------------------------
@@ -299,7 +315,14 @@ function createPeerConnection(){
     // 3) 상대의 영상/음성 track 오면 실행
     peerConnection.ontrack = (e)=>{
         const remoteStream = e.streams[0]
-        //  추후  상대방의 화상채팅 화면에 해당 media 보여주기 
+        //  join.html의 remoteVideo에서 상대방 화면 보여주기 
+        const remoteVideo = elementCol['remoteVideo']
+        if(!remoteVideo){
+            console.log('remoteVideo 요소 x')
+            return
+        }
+
+        remoteVideo.srcObject = remoteStream
 
     }
 
@@ -318,8 +341,25 @@ function createPeerConnection(){
     peerConnection.onconnectionstatechange= () =>{
         const currentState = peerConnection.connectionState
         console.log('현재 연결 상태',currentState)
+        if (currentState === "connecting"){
+            setStatus('연결 시도 중...')
+      
+          }
+          else if (currentState === "connected"){
+            setStatus('화상 연결 성공!')
+          }
+          else if(currentState === "disconnected"){
+            setStatus('상대방의 네트워크 연결이 불안정함...')
+          }
+          else if(currentState === "failed"){
+            setStatus('연결 실패... ')
+            cleanupCall()
+          }
+          else if(currentState === "closed"){
+            setStatus('통화 종료 ')
+          }
 
-        //                     
+                            
     }
 }
 
@@ -384,13 +424,25 @@ async function handleIceCandidate(candidate){ // 상대방으로부터 상대방
 // webRTC 연결 종료 및 초기화하는 함수 
 function resetPeerConnection() {
     if (peerConnection) {
-      peerConnection.ontrack = null;
-      peerConnection.onicecandidate = null;
-      peerConnection.onconnectionstatechange = null;
-      peerConnection.close();
-      peerConnection = null;
+      peerConnection.ontrack = null
+      peerConnection.onicecandidate = null
+      peerConnection.onconnectionstatechange = null
+      peerConnection.close()
+      peerConnection = null
     }
   }
+
+  // 연결 종료 시 peerConnection 관련 정보 초기화 
+  function cleanupCall() {
+    resetPeerConnection()
+    roomId = null
+    isCaller = false
+    if(elementCol['remoteVideo']){
+    elementCol["remoteVideo"].srcObject = null
+    }
+    // partnerLabel.textContent = "상대"
+    setChatEnabled(false)
+  }  
 
 
 // ---------------------------------------------------------
@@ -424,17 +476,18 @@ socket.on("waiting-canceled", () => {
 
 // 서버로부터 matched 이벤트를 받고 webRTC 연결을 준비 
 // matched 이벤트는 서버에서 상대방과 매칭이 완료되었을 때 발생
-socket.on('matched',async({roomId : matchedRoomId , isCaller, partnerNickname})=>{
+socket.on('matched',async(data)=>{
 
-    roomId = matchedRoomId
+    roomId = data.roomId
+    isCaller= data.isCaller
 
     clearChatMessages() // 이전 대화 초기화
-    addSystemMessage(`${partnerNickname}님과 매칭되었습니다.`)
+    addSystemMessage(`${data.partnerNickname}님과 매칭되었습니다.`)
     setChatEnabled(true) // 채팅 활성화
 
     console.log('방 번호 :',roomId)
     console.log('내가 Caller인지: ',isCaller)
-    console.log('상대방 이름:',partnerNickname)
+    console.log('상대방 이름:',data.partnerNickname)
     
 
     if(!localStream){// 카메라와 마이크 실행하기
