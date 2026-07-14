@@ -5,6 +5,14 @@ const element = {
     "ageInput" : document.getElementById("ageInput"),
     "joinBtn" : document.getElementById("joinBtn"),
     "myName": document.getElementById("myName"),
+    "micBtn" : document.getElementById("micBtn"),
+    "cameraBtn" : document.getElementById("cameraBtn"),
+    "findBtn" : document.getElementById("findBtn"),
+    "nextBtn" : document.getElementById("nextBtn"),
+    "hangupBtn" : document.getElementById("hangupBtn"),
+    "logoutBtn" : document.getElementById("logoutBtn"),
+    "myName" : document.getElementById("myName"),
+    "partnerLabel" : document.getElementById("partnerLabel"),
 
     // 실시간 채팅 관련 요소
     "chatMessages" : document.getElementById("chatMessages"),
