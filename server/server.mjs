@@ -2,7 +2,8 @@ import express from "express"
 import http from "http"
 import {Server} from "socket.io"
 import path from "path"
-import ProfanityFilter from "korean-profanity-filter"
+//import ProfanityFilter from "korean-profanity-filter"
+import fs from "fs"
 import { fileURLToPath } from "url"
 
 const app = express()
@@ -18,10 +19,25 @@ const users = new Map()     // 현재 접속중인 유저 정보를 저장하는
 const roomTimers = new Map()// 10분 타이머 관리하는 객체
 
 
-function run(){
-    console.log(ProfanityFilter.check("씨발"))
+// function run(){
+//     console.log(ProfanityFilter.check("씨발"))
+// }
+// run()
+
+const filterConfigPath = path.join(__dirname, "..", "config", "KoreanFilterRegex.json")
+const { korfilter } = JSON.parse(fs.readFileSync(filterConfigPath, "utf-8"))
+const profanityRegex = new RegExp(korfilter, "gi")
+// 메시지 안의 비속어를 찾아 같은 글자수의 '*'로 치환해서 돌려주는 함수
+function filterProfanity(message) {
+    // regex에 g 플래그가 있으므로 lastIndex가 남아있지 않도록 매번 새로 검사
+    profanityRegex.lastIndex = 0
+    const hasProfanity = profanityRegex.test(message)
+
+    profanityRegex.lastIndex = 0
+    const filteredMessage = message.replace(profanityRegex, (matched) => "*".repeat(matched.length))
+
+    return { filteredMessage, hasProfanity }
 }
-run()
 
 function createRoomID(socketA, socketB) {   // 두 사용자의 소켓 ID를 조합하여 방 ID 생성
     return `room-${socketA.id}-${socketB.id}`
@@ -161,11 +177,31 @@ io.on("connection", (socket) => {
         socket.to(roomId).emit("ice-candidate", {candidate})
     })
 
-    // socket.on("chat-message", ({ roomId, message, nickname}) => {
-    //     const filteredMessage = ProfanityFilter.check(message)?"클린한 대화로 진행해주세요":message
+    socket.on("chat-message", ({ roomId, message }) => {
+        const user = users.get(socket.id)
 
-    //     socket.to(roomId).emit("chat-message", { message: filteredMessage, nickname})
-    // })
+        // 유효성 검증: 유저 정보/roomId/메시지가 없거나, 본인이 실제로 그 방에 속해있지 않으면 무시
+        if (!user || !roomId || user.roomId !== roomId) {
+            socket.emit("chat-error", { message: "매칭된 상대방이 없어 메시지를 보낼 수 없습니다." })
+            return
+        }
+
+        if (typeof message !== "string" || !message.trim()) {
+            return
+        }
+
+        // 서버에서도 300자 제한 (클라이언트단 검증 우회 방지)
+        const trimmedMessage = message.trim().slice(0, 300)
+
+        // 비속어 필터링 (korean-profanity-filter 패키지 대신 config/KoreanFilterRegex.json 정규식 사용)
+        const { filteredMessage } = filterProfanity(trimmedMessage)
+
+        // 상대방에게만 전송 (내 화면에는 app.js에서 이미 즉시 출력하고 있음)
+        socket.to(roomId).emit("chat-message", {
+            message: filteredMessage,
+            senderNickname: user.nickname
+        })
+    })
 
     socket.on("disconnect", () => {         // 유저가 브라우저를 닫았을 때 발생
         console.log("사용자 연결이 끊어졌습니다.")

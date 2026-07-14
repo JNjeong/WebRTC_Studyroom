@@ -1,6 +1,14 @@
 import elements from "./elementCollection.js"; //전역변수 모음
 import Filter from 'bad-words' //영문 욕설 필터링
-import {rtcConfig} from "../config/stun.js" ; // webRTC STUN 설정 
+
+
+// webRTC STUN 설정 
+const rtcConfig = {
+    "iceServers":[
+        {"urls":"stun:stun.l.google.com:19302"},
+        {"urls": "stun:stun1.l.google.com:19302"}
+    ]
+}
 
 //---------------------------------------------------------
 // 전역변수 설정

@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>핏치 (Fit-Chee) - 매칭 룸</title>
+    <!-- index.html과 동일한 CSS 연결 -->
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <main class="app">
+      
+      <!--여기에 화상 화면(video) 및 채팅창(chatMessages) 레이아웃을 작성 -->
+      <section id="chatBox" class="card chat-card">
+         <p id="statusText">대기 중...</p>
+
+         <div id="timerBox" class="timer">
+          ⏰ 남은 시간 : <span id="timerText">10:00</span>
+         </div>
+         
+         <video id="localVideo" autoplay playsinline muted></video>
+         <video id="remoteVideo" autoplay playsinline></video>
+
+         <div class="media-controls">
+
+          <button id="micBtn">
+              🎤 마이크 ON
+          </button>
+
+          <button id="cameraBtn">
+              📷 카메라 ON
+          </button>
+
+         </div>
+         
+         <div id="chatMessages" class="chat-messages"></div>
+         
+         <form id="chatForm">
+            <input id="chatInput" type="text" />
+            <button id="sendBtn" type="submit">전송</button>
+         </form>
+      </section>
+
+      <!-- 💡 중요: socket.io와 app.js를 index.html과 똑같이 연동해주어야 작동합니다! -->
+      <script src="/socket.io/socket.io.js"></script>
+      <script type="module" src="app.js"></script>
+    </main>
+  </body>
+</html>
