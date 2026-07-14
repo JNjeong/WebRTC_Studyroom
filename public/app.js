@@ -69,7 +69,7 @@ elementCol["joinBtn"].addEventListener("click", async () => {
             age
         });
         
-        elementCol["loginBox"].classList.add("hidden")
+        // elementCol["loginBox"].classList.add("hidden") 페이지분할
         // 메인박스 숨기기
         addSystemMessage("입장 완료. 랜덤 매칭을 시작하세요.")
 
