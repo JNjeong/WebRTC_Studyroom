@@ -47,19 +47,21 @@ elementCol["joinBtn"].addEventListener("click", async () => {
     }
 
     try{
+        
+        elementCol["micBtn"].textContent = "마이크 ON";
+        elementCol["cameraBtn"].textContent = "카메라 ON";
 
-        
-        // TODO : 마이크 , 카메라 텍스트 변경
-        // TODO : 마이크, 카메라 색변경
-        
+        elementCol["micBtn"].style.backgroundColor = "green";
+        elementCol["cameraBtn"].style.backgroundColor = "green";        
+
         // nickname, gender, age를 서버로 전송하여 입장 처리
         socket.emit("join", {
             nickname,
             gender,
             age
         });
-
-        loginBox.classList.add("hidden")
+        
+        elementCol["loginBox"].classList.add("hidden")
         // 메인박스 숨기기
         addSystemMessage("입장 완료. 랜덤 매칭을 시작하세요.")
         
@@ -70,9 +72,108 @@ elementCol["joinBtn"].addEventListener("click", async () => {
 })
 
 
+elementCol["findBtn"].addEventListener("click", () => {
+  resetPeerConnection()
+  socket.emit("find-match")
+  setStatus("상대를 찾는 중입니다...")
+  elementCol["findBtn"].disabled = true
+  elementCol["nextBtn"].disabled = true
+  elementCol["hangupBtn"].disabled = true
+  setChatEnabled(false)
+})
+
+elementCol["nextBtn"].addEventListener("click", () => {
+  socket.emit("next-match")
+  cleanupCall()
+  socket.emit("find-match")
+  setStatus("다음 상대를 찾는 중입니다...")
+  elementCol["findBtn"].disabled = true
+  elementCol["nextBtn"].disabled = true
+  elementCol["hangupBtn"].disabled = true
+  setChatEnabled(false)
+})
+
+elementCol["hangupBtn"].addEventListener("click", () => {
+  socket.emit("next-match")
+  cleanupCall()
+  setStatus("연결이 종료되었습니다.")
+  addSystemMessage("통화를 종료했습니다.")
+  elementCol["findBtn"].disabled = false
+  elementCol["nextBtn"].disabled = true
+  elementCol["hangupBtn"].disabled = true
+  setChatEnabled(false)
+})
+
+elementCol["logoutBtn"].addEventListener("click", () => {
+  socket.emit("next-match")
+  cleanupCall();  // WebRTC 종료
 
 
+  if (localStream) {   // 카메라/마이크 종료
+    localStream.getTracks().forEach(track => track.stop())
+    localVideo.srcObject = null
+    localStream = null
+  }
 
+  remoteVideo.srcObject = null
+
+  // 상태 초기화
+  nickname = ""
+  ageInput.value = ""
+  roomId = null
+  isCaller = false
+  elementCol["chatMessages"].innerHTML = ""
+  elementCol["nicknameInput"].value = ""
+  document.querySelectorAll('input[name="gender"]').forEach(radio => {
+    radio.checked = false;
+  })
+
+  elementCol["myName"].textContent = "나"
+  elementCol["partnerLabel"].textContent = "상대"
+  setStatus("대기 중")
+
+  // 버튼 초기화
+  elementCol["findBtn"].disabled = false
+  elementCol["nextBtn"].disabled = true
+  elementCol["hangupBtn"].disabled = true
+  setChatEnabled(false)
+
+  elementCol["mainBox"].classList.add("hidden");
+  elementCol["loginBox"].classList.remove("hidden");
+
+  isMicOn = true
+  isCameraOn = true
+})
+
+elementCol["micBtn"].addEventListener("click", () => {
+  if (!localStream) return
+  isMicOn = !isMicOn
+  localStream.getAudioTracks().forEach((track) => {
+    track.enabled = isMicOn
+  })
+  elementCol["micBtn"].textContent = isMicOn ? "마이크 ON" : "마이크 OFF"
+  elementCol["micBtn"].style.backgroundColor = isMicOn ? "green" : "#424867"
+})
+
+elementCol["cameraBtn"].addEventListener("click", () => {
+  if (!localStream) return
+  isCameraOn = !isCameraOn
+  localStream.getVideoTracks().forEach((track) => {
+    track.enabled = isCameraOn
+  })
+  elementCol["cameraBtn"].textContent = isCameraOn ? "카메라 ON" : "카메라 OFF"
+  elementCol["cameraBtn"].style.backgroundColor = isCameraOn ? "green" : "#424867"
+})
+
+elementCol["chatForm"].addEventListener("submit", (event) => {
+  event.preventDefault()
+  const message = elementCol["chatInput"].value.trim()
+  if (!message || !roomId) return
+
+  addChatMessage(nickname, message, true);
+  socket.emit("chat-message", { roomId, message, nickname })
+  elementCol["chatInput"].value = ""
+})
 // ---------------------------------------------------------
 // 기타 함수 설정
 
