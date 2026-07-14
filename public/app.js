@@ -72,6 +72,8 @@ elementCol["joinBtn"].addEventListener("click", async () => {
         elementCol["loginBox"].classList.add("hidden")
         // 메인박스 숨기기
         addSystemMessage("입장 완료. 랜덤 매칭을 시작하세요.")
+
+        window.location.href = "./join.html";
         
     } catch (error) {
         alert("카메라 또는 마이크 권한을 허용해야 이용할 수 있습니다.")
@@ -146,11 +148,13 @@ elementCol["logoutBtn"].addEventListener("click", () => {
   elementCol["hangupBtn"].disabled = true
   setChatEnabled(false)
 
-  elementCol["mainBox"].classList.add("hidden");
-  elementCol["loginBox"].classList.remove("hidden");
+//   elementCol["mainBox"].classList.add("hidden");
+//   elementCol["loginBox"].classList.remove("hidden");
 
   isMicOn = true
   isCameraOn = true
+
+    window.location.href = "./index.html";
 })
 
 elementCol["micBtn"].addEventListener("click", () => {
